@@ -37,11 +37,12 @@ exports.redirect = async (req, res, next) => {
 exports.deleteUrl = async (req, res, next) => {
   try {
     const url = await Url.findOne({ urlCode: req.params.code });
-    if (url) {
+    if (!url) return res.status(404).json({ message: "Url not found" });
+    if (url.userId.equals(req.user._id)) {
       await Url.findByIdAndDelete(url._id);
       return res.status(201).json("Deleted");
     } else {
-      return res.status(404).json("No URL Found");
+      next({ message: "You do not have permission to delete the url!" });
     }
   } catch (err) {
     next(err);
