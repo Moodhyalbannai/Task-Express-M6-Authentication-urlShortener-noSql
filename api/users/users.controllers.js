@@ -1,22 +1,25 @@
 const User = require("../../models/User");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
-exports.signup = async (req, res) => {
-  try {
-    const newUser = await User.create(req.body);
-    res.status(201).json(newUser);
-  } catch (err) {
-    next(err);
-  }
+const hashPassword = async (password) => {
+  return await bcrypt.hash(password, 10);
 };
 
-exports.signin = async (req, res) => {
-  try {
-  } catch (err) {
-    res.status(500).json("Server Error");
-  }
+const generateToken = (user) => {
+  const payload = {
+    _id: user._id,
+    username: user.username,
+  };
+
+  const token = jwt.sign(payload, process.env.JWT_PRIVATE_KEY, {
+    expiresIn: "5d",
+  });
+  return token;
 };
 
-exports.getUsers = async (req, res) => {
+exports.getUsers = async (req, res, next) => {
   try {
     const users = await User.find().populate("urls");
     res.status(201).json(users);
@@ -24,3 +27,24 @@ exports.getUsers = async (req, res) => {
     next(err);
   }
 };
+
+exports.signup = async (req, res, next) => {
+  try {
+    req.body.password = await hashPassword(req.body.password);
+    const newUser = await User.create(req.body);
+    const token = generateToken(newUser);
+    res.status(201).json({ token });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.signin = async (req, res, next) => {
+  try {
+    const token = generateToken(req.user);
+    res.json({ token });
+  } catch (err) {
+    next(err);
+  }
+};
+0;
