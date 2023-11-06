@@ -22,12 +22,12 @@ const localStrategy = new LocalStrategy(
 
 const jwtStrategy = new JWTStrategy(
   {
-    jwtFromRequest: fromAuthHeaderAsBearerToken,
+    jwtFromRequest: fromAuthHeaderAsBearerToken(),
     secretOrKey: process.env.JWT_PRIVATE_KEY,
   },
   async (payload, done) => {
     try {
-      if (Date.now() / 1000 < payload.exp) {
+      if (Date.now() / 1000 > payload.exp) {
         done({ message: "Token is expired" });
       }
 

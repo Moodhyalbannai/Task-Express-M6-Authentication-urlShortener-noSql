@@ -4,15 +4,15 @@ const User = require("../../models/User");
 
 const baseUrl = "http:localhost:8000/urls";
 
-exports.shorten = async (req, res) => {
+exports.shorten = async (req, res, next) => {
   // create url code
   const urlCode = shortid.generate();
   try {
     req.body.shortUrl = `${baseUrl}/${urlCode}`;
     req.body.urlCode = urlCode;
-    req.body.userId = req.params.userId;
+    req.body.userId = req.user._id; //given by jwt strategy
     const newUrl = await Url.create(req.body);
-    await User.findByIdAndUpdate(req.params.userId, {
+    await User.findByIdAndUpdate(req.body.userId, {
       $push: { urls: newUrl._id },
     });
     res.json(newUrl);
@@ -21,7 +21,7 @@ exports.shorten = async (req, res) => {
   }
 };
 
-exports.redirect = async (req, res) => {
+exports.redirect = async (req, res, next) => {
   try {
     const url = await Url.findOne({ urlCode: req.params.code });
     if (url) {
@@ -34,7 +34,7 @@ exports.redirect = async (req, res) => {
   }
 };
 
-exports.deleteUrl = async (req, res) => {
+exports.deleteUrl = async (req, res, next) => {
   try {
     const url = await Url.findOne({ urlCode: req.params.code });
     if (url) {

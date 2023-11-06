@@ -14,7 +14,7 @@ const generateToken = (user) => {
   };
 
   const token = jwt.sign(payload, process.env.JWT_PRIVATE_KEY, {
-    expiresIn: "5d",
+    expiresIn: `${process.env.JWT_TOKEN_EXP}d`,
   });
   return token;
 };
